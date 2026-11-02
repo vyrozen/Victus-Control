@@ -1,4 +1,4 @@
-# Publish Omen Control Alpha 1.0V later
+# Publish Omen Control Victus Edition later
 
 The handoff includes source, a combined experimental PKG and app ZIP. No GitHub repository or release has been created. Public assets are in dist/Release; private artwork-preserving assets are in dist/LocalRelease.
 
@@ -10,4 +10,4 @@ Before publishing, test the UI, fan safety/recovery, quiet login, Dock transitio
 
 Build with ./build-app.sh or Xcode. A complete app bundle includes Contents/MacOS/OmenPowerHelper and Contents/Library/LaunchDaemons/local.omen.power.plist. App power-helper registration uses macOS ServiceManagement; do not replace it with a passwordless sudo rule or arbitrary-command daemon. Local ad-hoc builds may face approval/distribution restrictions. See POWER-HELPER.md.
 
-When ready, commit the reviewed source and tag that commit v1.0-alpha.1. Attach the source ZIP and use RELEASE-NOTES.md for its description. Attach only the matching 1.0 assets and checksums from dist/Release. The combined installer still needs root/install/reboot acceptance testing before a stable release. Do not publish dist/LocalRelease or optional local artwork without its redistribution rights. User-visible signing/notarization requirements remain documented in LIMITATIONS.md; a source license is unrelated to Apple code signing.
+When ready, commit the reviewed source and tag that commit v1.1.0-victus. Attach the source ZIP and use RELEASE-NOTES.md for its description. Attach only the matching 1.0 assets and checksums from dist/Release. The combined installer still needs root/install/reboot acceptance testing before a stable release. Do not publish dist/LocalRelease or optional local artwork without its redistribution rights. User-visible signing/notarization requirements remain documented in LIMITATIONS.md; a source license is unrelated to Apple code signing.

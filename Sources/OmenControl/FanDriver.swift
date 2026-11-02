@@ -51,7 +51,7 @@ actor FanDriver {
         result.gpuMinRPM = (dictionary["GPUFanMinRPM"] as? NSNumber)?.intValue ?? 2300
         result.cpuMaxRPM = (dictionary["CPUFanMaxRPM"] as? NSNumber)?.intValue ?? 6000
         result.gpuMaxRPM = (dictionary["GPUFanMaxRPM"] as? NSNumber)?.intValue ?? 6300
-        guard ["0.3.1", "0.4.0"].contains(result.version) else {
+        guard ["0.3.1", "0.4.0", "0.5.0"].contains(result.version) else {
             result.message = "Reboot to load the installed fan bridge. The currently running driver is \(dictionary["BridgeVersion"] ?? "unknown")."
             return result
         }

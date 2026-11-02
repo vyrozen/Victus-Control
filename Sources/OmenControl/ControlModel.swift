@@ -49,7 +49,7 @@ import OmenCore
         isPreview = preview
         serviceMessage = serviceEnabled ? "Service is on." : "Service is off."
         if preview {
-            bridge.ready=true;bridge.available=true;bridge.cpuRPM=2400;bridge.gpuRPM=2600;bridge.version="0.4.0";bridge.minimumPercent=0
+            bridge.ready=true;bridge.available=true;bridge.cpuRPM=2400;bridge.gpuRPM=2600;bridge.version="0.5.0";bridge.minimumPercent=0
             lastSampleTime=Date();applied=FanSettings();status="Automatic cooling is active."
             snapshot.sensors=[.init(key:"TC0D",label:"CPU die",value:48,unit:"°C"),.init(key:"TCFW",label:"CPU firmware sensor",value:46,unit:"°C"),.init(key:"TG0D",label:"GPU die",value:42,unit:"°C")]
             history=(0..<21).map { i in FanSample(date: Date().addingTimeInterval(Double(i-20)*3),cpu:2400+(i%4)*100,gpu:2600+(i%3)*100) }
@@ -127,7 +127,7 @@ import OmenCore
         if settings.profile == .curve && curveTemperature == nil { return "The curve needs both CPU and GPU temperatures. A missing sensor is shown as —; use Auto or Manual for now." }
         if let t = settings.targets(temperature: curveTemperature), settings.profile != .auto,
            (t.0 < Double(bridge.minimumPercent) || t.1 < Double(bridge.minimumPercent)) {
-            return "Restart to load fan bridge 0.4.0 and enable targets below 70%."
+            return "Restart to load fan bridge 0.5.0 and enable targets below 70%."
         }
         return nil
     }

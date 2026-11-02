@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
-  <title>Omen Control Alpha 1.0V — Experimental 8C78</title>
+  <title>Omen Control Victus Edition — Experimental 8C78 / 8BC2 (Victus 16)</title>
   <welcome file="Welcome.html" mime-type="text/html"/>
   <readme file="ReadMe.html" mime-type="text/html"/>
   <license file="License.txt"/>

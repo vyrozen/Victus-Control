@@ -86,7 +86,7 @@ import OmenCore
         menuPanel?.dismiss()
         if dashboard == nil {
             let window = NSWindow(contentRect: NSRect(x: 0,y: 0,width: 780,height: 860), styleMask: [.titled,.closable,.miniaturizable,.resizable,.fullSizeContentView], backing: .buffered, defer: false)
-            window.title = "Omen Control Alpha 1.0V"; window.minSize = NSSize(width: 700,height: 500)
+            window.title = "Omen Control Victus Edition"; window.minSize = NSSize(width: 700,height: 500)
             window.isReleasedWhenClosed = false; window.titlebarAppearsTransparent = true
             window.isOpaque = false; window.backgroundColor = .clear
             window.titleVisibility = .hidden
@@ -131,7 +131,7 @@ import OmenCore
         menuPanel?.dismiss()
         if settingsWindow == nil {
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 660), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = "Omen Control Alpha 1.0V — Settings"
+            window.title = "Omen Control Victus Edition — Settings"
             window.isOpaque = false; window.backgroundColor = .clear
             window.isReleasedWhenClosed = false
             window.delegate = self
@@ -205,7 +205,7 @@ struct Dashboard: View {
             if model.isPreview { Text("Design preview · sample readings").font(AppType.body).foregroundStyle(.secondary) }
             HStack(alignment: .top) {
                 VStack(alignment: .leading,spacing: 5) {
-                    Text("Omen Control Alpha 1.0V").font(AppType.title)
+                    Text("Omen Control Victus Edition").font(AppType.title)
                     Text(powerPage ? "Power Profile" : "Cooling, at a glance.").foregroundStyle(.secondary)
                     Label(model.powerLabel,systemImage: model.powerSymbol).font(AppType.body).foregroundStyle(.secondary)
                 }
@@ -473,7 +473,7 @@ struct MenuPanel: View {
     }
     var body: some View {
         VStack(alignment: .leading,spacing: 8) {
-            HStack { Text("Omen Control Alpha 1.0V").font(AppType.heading); Spacer(); Image(systemName: model.powerSymbol).foregroundStyle(.secondary).help(model.powerLabel) }
+            HStack { Text("Omen Control Victus Edition").font(AppType.heading); Spacer(); Image(systemName: model.powerSymbol).foregroundStyle(.secondary).help(model.powerLabel) }
             HStack(spacing:12) { menuReadout("CPU",gpu:false); Spacer(minLength:0); menuReadout("GPU",gpu:true) }
             Divider()
             Picker("Profile",selection:$model.settings.profile) {

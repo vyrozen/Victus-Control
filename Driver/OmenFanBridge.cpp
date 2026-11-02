@@ -24,7 +24,7 @@ class OmenFanBridge : public IOService {
     IOWorkLoop *loop = nullptr;
     IONotifier *sleepNotifier = nullptr;
     OmenFanClient *owner = nullptr;
-    bool ready = false, manual = false, sleeping = false;
+    bool ready = false, readOnly = false, manual = false, sleeping = false;
     uint8_t minimum[2] = {}, maximum[2] = {}, target[2] = {};
     uint32_t rpm[2] = {}, zeroSamples = 0;
     unsigned discoveryAttempts = 10;
@@ -38,12 +38,18 @@ class OmenFanBridge : public IOService {
         if (data && data->getLength() == 4) bcopy(data->getBytesNoCopy(), &value, 4);
         return value;
     }
+    // 8C78: OMEN 16-wf1xxx (original). 8BC2: Victus 16 (Linux hp-wmi maps it to the
+    // same 0x2D/0x2E/0x2F fan protocol).
+    static bool supportedBoard(uint32_t id) { return id == 0x8c78 || id == 0x8bc2; }
     bool boardMatches() {
         auto it = IORegistryIterator::iterateOver(gIOServicePlane, kIORegistryIterateRecursively);
         if (!it) return false;
         bool found = false;
         while (auto e = OSDynamicCast(IORegistryEntry, it->getNextObject())) {
-            if (property32(e, "subsystem-vendor-id") == 0x103c && property32(e, "subsystem-id") == 0x8c78) { found = true; break; }
+            uint32_t id = property32(e, "subsystem-id");
+            if (property32(e, "subsystem-vendor-id") == 0x103c && supportedBoard(id)) {
+                setProperty("PhysicalBoard", static_cast<unsigned long long>(id), 32); found = true; break;
+            }
         }
         it->release(); return found;
     }
@@ -104,7 +110,10 @@ class OmenFanBridge : public IOService {
     }
     bool table() {
         uint8_t input[4] = {}, data[128] = {};
-        if (query(0x2f, input, 4, data, 128) != kIOReturnSuccess || !omenFanLimits(data,128,minimum,maximum)) return false;
+        IOReturn tableStatus = query(0x2f, input, 4, data, 128);
+        setProperty("DiscoveryTableTransport", static_cast<unsigned long long>(static_cast<uint32_t>(tableStatus)), 32);
+        setProperty("RawFanTable", data, sizeof(data));
+        if (tableStatus != kIOReturnSuccess || !omenFanLimits(data,128,minimum,maximum)) return false;
         setProperty("FanTable", data, sizeof(data));
         setProperty("CPUFanMinRPM", static_cast<unsigned long long>(minimum[0])*100, 32);
         setProperty("CPUFanMaxRPM", static_cast<unsigned long long>(maximum[0])*100, 32);
@@ -114,7 +123,10 @@ class OmenFanBridge : public IOService {
     }
     bool telemetry() {
         uint8_t input = 0, data[128] = {};
-        if (query(0x2d, &input, 1, data, 128) != kIOReturnSuccess || data[0] > 150 || data[1] > 150) { setProperty("TelemetryHealthy",false); return false; }
+        IOReturn rpmStatus = query(0x2d, &input, 1, data, 128);
+        setProperty("RawFanTelemetry", data, 16);
+        setProperty("TelemetryTransport", static_cast<unsigned long long>(static_cast<uint32_t>(rpmStatus)), 32);
+        if (rpmStatus != kIOReturnSuccess || data[0] > 150 || data[1] > 150) { setProperty("TelemetryHealthy",false); return false; }
         setProperty("TelemetryHealthy",true);
         rpm[0] = data[0]*100; rpm[1] = data[1]*100;
         setProperty("CPUFanRPM", static_cast<unsigned long long>(rpm[0]), 32);
@@ -154,12 +166,18 @@ class OmenFanBridge : public IOService {
                 --self->discoveryAttempts;
                 if(self->boardMatches()) {
                     self->discoveryAttempts=0;
-                    self->ready=self->table() && self->telemetry();
+                    bool tableOK=self->table();
+                    self->setProperty("DiscoveryTableOK",tableOK);
+                    bool rpmOK=self->telemetry();
+                    self->ready=tableOK && rpmOK;
+                    // Unvalidated table: keep sampling RPM, but never allow writes.
+                    self->readOnly=!tableOK && rpmOK;
+                    self->setProperty("TelemetryReadOnly",self->readOnly);
                     self->setProperty("FanWritesSupported",self->ready);
                     self->setProperty("BoardVerified",true);
                 }
             }
-            bool sample = self->ready && self->telemetry();
+            bool sample = (self->ready || self->readOnly) && self->telemetry();
             if (self->manual) {
                 if (!sample || ((self->target[0] && !self->rpm[0]) || (self->target[1] && !self->rpm[1]))) ++self->zeroSamples; else self->zeroSamples = 0;
                 if (now() > self->lease || self->zeroSamples >= 3) self->automatic();
@@ -251,7 +269,7 @@ bool OmenFanBridge::start(IOService *provider) {
     }
     if(object)object->release(); if(!found || !IOService::start(provider))return false;
     lock=IOLockAlloc(); if(!lock)return false;
-    setProperty("BridgeVersion","0.4.0"); setProperty("PhysicalBoard","8C78"); setProperty("ManualActive",false);
+    setProperty("BridgeVersion","0.5.0"); setProperty("ManualActive",false);
     setProperty("OmenKeySequence",0ULL,64);
     setProperty("FanWritesSupported",false); setProperty("BoardVerified",false);
     setProperty("MinimumManualPercent",0ULL,32);

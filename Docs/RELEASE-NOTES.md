@@ -1,4 +1,18 @@
-# Omen Control Alpha 1.0V
+# Omen Control Victus Edition 1.1.0
+
+Unofficial community fork of [Omen-Control](https://github.com/DEATHLESSEVIL/Omen-Control) Alpha 1.0V. App 1.1.0 (build 21), fan bridge 0.5.0. The app still accepts bridge 0.3.1 and 0.4.0.
+
+- Added support for HP Victus 16, PCI subsystem `103C:8BC2`, alongside the original 8C78. The driver and the experimental installer both accept either board.
+- Fixed fan-table validation for boards whose table starts with a "fans off" row (CPU 0, GPU 0). The 8BC2 table previously failed validation, which prevented RPM from being read.
+- Added a read-only mode: if the fan table does not validate but RPM can be read, RPM is shown and all fan writes are refused (`TelemetryReadOnly`).
+- New registry diagnostics: `DiscoveryTableOK`, `DiscoveryTableTransport`, `RawFanTable`, `RawFanTelemetry`, `TelemetryTransport`. `PhysicalBoard` now reports the detected subsystem ID.
+- Installer and package name now cover both boards (`-8C78-8BC2-Experimental.pkg`).
+- Documentation rewritten in English for this fork, with a new [Victus 16 notes](VICTUS-16.md) page.
+- Hardware status: Victus 16 RPM readback and manual control confirmed by the fork author using a manual kext install. The combined PKG and power helper are untested on this board. The bridge is now 0.5.0; bundle identifiers (`local.omen.*`) are unchanged, so existing helper approvals and login items keep working.
+
+---
+
+# Upstream history: Omen Control Alpha 1.0V
 
 - Power & startup is renamed **Power Profile**.
 - Low Power Mode initializes from actual macOS battery/AC policies, refreshes on app activation, preserves drafts and verifies changed system settings after applying.
