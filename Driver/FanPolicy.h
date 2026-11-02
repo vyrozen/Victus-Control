@@ -6,6 +6,7 @@ inline bool omenFanLimits(const uint8_t *data, unsigned size, uint8_t minimum[2]
     unsigned rows=0;
     for(unsigned i=2;i+2<size;i+=3) {
         if(!data[i] && !data[i+1] && !data[i+2])break;
+        if(!data[i] && !data[i+1])continue; // "fans off" row (board 8BC2): noise only, not a usable target
         if(data[i]<10 || data[i]>100 || data[i+1]<10 || data[i+1]>100)return false;
         for(unsigned fan=0;fan<2;++fan) {
             if(data[i+fan]<minimum[fan])minimum[fan]=data[i+fan];

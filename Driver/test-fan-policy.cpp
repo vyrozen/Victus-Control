@@ -7,6 +7,15 @@ int main() {
     uint8_t data[128]={2,0,20,25,30,50,60,45}, lo[2], hi[2], target=0;
     assert(omenFanLimits(data,128,lo,hi));
     assert(lo[0]==20 && hi[0]==50 && lo[1]==25 && hi[1]==60);
+    {   // Board 8BC2 table: leading "fans off" row (0,0,noise), then CPU 18..58 / GPU 21..61.
+        uint8_t t[128]={2,0x2a,0,0,15}; unsigned n=5;
+        for(unsigned c=18;c<=58 && n+2<128;++c){ t[n++]=c; t[n++]=c+3; t[n++]=40; }
+        uint8_t l[2],h[2];
+        assert(omenFanLimits(t,128,l,h));
+        assert(l[0]==18 && h[0]==58 && l[1]==21 && h[1]==61);
+        uint8_t bad[128]={2,0x2a,0,5,15,20,20,20}; // CPU 0 but GPU nonzero must still be rejected
+        assert(!omenFanLimits(bad,128,l,h));
+    }
     assert(omenManualTarget(lo[0],hi[0],70,&target) && target==35);
     assert(omenManualTarget(lo[1],hi[1],70,&target) && target==42);
     assert(omenManualTarget(49,50,70,&target) && target==49);

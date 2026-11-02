@@ -4,15 +4,18 @@ This is an experimental community utility, not an HP product. A working fan-cont
 
 ## Tested platform and installer restrictions
 
-- Physical HP OMEN 16-wf1xxx, PCI subsystem vendor 103C, board 8C78, BIOS F.15; Intel i7-14650HX and NVIDIA RTX 4060 Laptop GPU.
-- The app builds for Intel macOS 13+. The supplied bridge is built with the macOS 26.5 SDK and the first combined installer is restricted to Darwin 25.5–25.99. Other macOS releases are unvalidated for this driver.
-- The package requires an actual writable mounted FAT EFI volume, and exactly one mounted volume containing EFI/OC/config.plist and OpenCore.efi. It does not mount or guess a boot partition. Unmount other EFI volumes and mount the actual boot EFI yourself.
+- **OMEN 16-wf1xxx** (original project): PCI subsystem vendor 103C, board 8C78, BIOS F.15; Intel i7-14650HX and NVIDIA RTX 4060 Laptop GPU.
+- **Victus 16** (this fork): board 8BC2, Intel i7-13700HX, Hackintosh on Darwin 25.6, manual kext install. RPM readback and manual control confirmed by the fork author. BIOS version, GPU model, sleep/wake behavior and the combined PKG were not recorded or tested. See [Victus 16 notes](VICTUS-16.md).
+- The app builds for Intel macOS 13+. The supplied bridge is built with the macOS 26.5 SDK and the combined installer is restricted to Darwin 25.5–25.99. Other macOS releases are unvalidated for this driver.
+- The installer accepts boards 8C78 and 8BC2. The package requires an actual writable mounted FAT EFI volume, and exactly one mounted volume containing EFI/OC/config.plist and OpenCore.efi. It does not mount or guess a boot partition. Unmount other EFI volumes and mount the actual boot EFI yourself.
 - The first package accepts only the exact tested OpenCore 1.0.8 binary, SHA-256 `1569cd1d183c5ee9fda2eced767a4b2efa307e6edfcf2a50109c9657098671ff`, so its bundled ocvalidate matches the loader. A different hash, including another 1.0.8 build, requires manual installation with the matching validator. The hash check is a narrow compatibility gate, not a security signature or proof of the boot partition's identity.
 - Physical board identity is checked independently of spoofed SMBIOS. BIOS F.15 is the tested BIOS; its version is not reliably detectable under spoofed macOS and is not enforced by the installer. Confirm it yourself. Future BIOS updates may change this protocol.
 
 ## Fan and sensor behavior
 
-- Manual 1–100% requests scale each fan's own maximum and clamp to the firmware minimum. The tested CPU range is 2000–6000 RPM, GPU 2300–6300 RPM.
+- Manual 1–100% requests scale each fan's own maximum and clamp to the firmware minimum. The range comes from the firmware table: 8C78 CPU 2000–6000 and GPU 2300–6300 RPM; 8BC2 CPU 1800–5800 and GPU 2100–6100 RPM.
+- If the firmware fan table fails validation, the driver runs read-only (`TelemetryReadOnly`): RPM is shown and no fan writes are accepted.
+- An RPM of 0 can be normal in Auto at idle, because the firmware may stop the fans.
 - **0% means firmware Auto, not fan stop.** This firmware's fan-stop method is a stub. The UI does not promise stopped fans.
 - RPM readback is in 100-RPM increments. Animation is slowed by 1/240 for visibility; it is not a physical tachometer display.
 - GPU temperature depends on an exposed SMC sensor or a successful read-only NVIDIA RM query through the existing driver. That fallback is not verified on every driver and may return unavailable. No graphics driver is included, patched or replaced.

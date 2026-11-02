@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--validator',type=Path,required=True);p.add_argument('--local-artwork',action='store_true',help='Build a private local installer preserving optional artwork');args=p.parse_args()
 validator=args.validator.resolve()
 def run(*args,**kwargs):return subprocess.run([str(a) for a in args],check=True,**kwargs)
-release_label='Omen-Control-Alpha-1.0V'
+release_label='Omen-Control-Victus-Edition-1.1.0'
 version=plistlib.loads((root/'Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
 info=subprocess.run([str(validator)],capture_output=True,text=True)
 assert 'OpenCore version 1.0.8' in info.stdout+info.stderr,'Provide the matching ocvalidate 1.0.8.'
@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='omen-release-') as folder:
  run('pkgbuild','--root',payload,'--scripts',scripts,'--component-plist',components,'--identifier','local.omen.control.package','--version',version,'--install-location','/','--ownership','recommended',stage/'omen-component.pkg')
  distribution=(root/'Installer/Distribution.xml').read_text().replace('@VERSION@',version)
  (stage/'Distribution.xml').write_text(distribution)
- installer=release/f'{release_label}-8C78-Experimental.pkg'
+ installer=release/f'{release_label}-8C78-8BC2-Experimental.pkg'
  run('productbuild','--distribution',stage/'Distribution.xml','--resources',root/'Installer/Resources','--package-path',stage,installer)
  with zipfile.ZipFile(release/f'{release_label}-App.zip','w',zipfile.ZIP_DEFLATED) as z:
   for file in sorted(app.rglob('*')):

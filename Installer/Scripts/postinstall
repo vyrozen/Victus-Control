@@ -12,4 +12,4 @@ fi
 if ! /usr/bin/sudo -H -u "$user" /bin/zsh "$support/Tools/configure-login.sh"; then
     print 'App and EFI driver installed; login setup failed. Enable the service in Settings after reboot.'
 fi
-print 'Installation complete. Restart to load OmenFanBridge 0.4.0.'
+print 'Installation complete. Restart to load OmenFanBridge 0.5.0.'

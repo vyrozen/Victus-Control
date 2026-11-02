@@ -55,10 +55,11 @@ func verifyBoard() throws {
     var found = false
     while true {
         let entry = IOIteratorNext(iterator); if entry == 0 { break }
-        if property(entry, "subsystem-vendor-id") == 0x103c && property(entry, "subsystem-id") == 0x8c78 { found = true }
+        // 0x8C78: OMEN 16-wf1xxx. 0x8BC2: Victus 16.
+        if property(entry, "subsystem-vendor-id") == 0x103c, let id = property(entry, "subsystem-id"), id == 0x8c78 || id == 0x8bc2 { found = true }
         IOObjectRelease(entry)
     }
-    try require(found, "Unsupported physical board. This package is restricted to HP subsystem 103C:8C78.")
+    try require(found, "Unsupported physical board. This package supports HP subsystems 103C:8C78 (OMEN 16-wf1xxx) and 103C:8BC2 (Victus 16).")
     let kernel = try run("/usr/bin/uname", ["-r"]).trimmingCharacters(in: .whitespacesAndNewlines)
     let arch = try run("/usr/bin/uname", ["-m"]).trimmingCharacters(in: .whitespacesAndNewlines)
     try require(kernel.hasPrefix("25.") && (Int(kernel.split(separator: ".").dropFirst().first ?? "0") ?? 0) >= 5 && arch == "x86_64", "This first driver package requires Intel macOS with Darwin 25.5 through 25.99 (Tahoe).")
@@ -68,7 +69,7 @@ func candidate(_ original: Data) throws -> Data {
           var kernel = config["Kernel"] as? [String: Any], var add = kernel["Add"] as? [[String: Any]] else { throw InstallError(message: "Kernel/Add is missing or malformed.") }
     let matches = add.indices.filter { (add[$0]["BundlePath"] as? String)?.lowercased() == "omenfanbridge.kext" }
     try require(matches.count <= 1, "Duplicate fan bridge entries; resolve these manually first.")
-    let entry: [String: Any] = ["Arch": "x86_64", "BundlePath": "OmenFanBridge.kext", "Comment": "OMEN board 8C78 fan bridge 0.4.0", "Enabled": true, "ExecutablePath": "Contents/MacOS/OmenFanBridge", "MinKernel": "25.5.0", "MaxKernel": "25.99.99", "PlistPath": "Contents/Info.plist"]
+    let entry: [String: Any] = ["Arch": "x86_64", "BundlePath": "OmenFanBridge.kext", "Comment": "HP OMEN/Victus fan bridge 0.5.0 (boards 8C78, 8BC2)", "Enabled": true, "ExecutablePath": "Contents/MacOS/OmenFanBridge", "MinKernel": "25.5.0", "MaxKernel": "25.99.99", "PlistPath": "Contents/Info.plist"]
     if let index = matches.first { add[index] = entry } else { add.append(entry) }
     kernel["Add"] = add; config["Kernel"] = kernel
     return try plistData(config)
