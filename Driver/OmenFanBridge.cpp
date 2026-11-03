@@ -24,7 +24,7 @@ class OmenFanBridge : public IOService {
     IOWorkLoop *loop = nullptr;
     IONotifier *sleepNotifier = nullptr;
     OmenFanClient *owner = nullptr;
-    bool ready = false, readOnly = false, manual = false, sleeping = false;
+    bool ready = false, readOnly = false, manual = false, sleeping = false, boosting = false;
     uint8_t minimum[2] = {}, maximum[2] = {}, target[2] = {};
     uint32_t rpm[2] = {}, zeroSamples = 0;
     unsigned discoveryAttempts = 10;
@@ -121,6 +121,19 @@ class OmenFanBridge : public IOService {
         setProperty("GPUFanMaxRPM", static_cast<unsigned long long>(maximum[1])*100, 32);
         return true;
     }
+    // Hot CPU while under manual control: go to full fans and stay in manual.
+    // Handing control back to firmware Auto at the hottest moment is not safe
+    // on every board, so Auto is only used if the max request itself fails.
+    void thermalGuard(uint8_t celsius) {
+        if(!manual) return;
+        if(!boosting && celsius>=85) {
+            if(setFans(maximum[0],maximum[1])==kIOReturnSuccess) { boosting=true; setProperty("ThermalBoost",true); }
+            else { setProperty("ThermalFallback",true); automatic(); }
+        } else if(boosting && celsius<75) {
+            boosting=false; setProperty("ThermalBoost",false);
+            if(setFans(target[0],target[1])!=kIOReturnSuccess) automatic();
+        }
+    }
     bool telemetry() {
         uint8_t input = 0, data[128] = {};
         IOReturn rpmStatus = query(0x2d, &input, 1, data, 128);
@@ -138,7 +151,7 @@ class OmenFanBridge : public IOService {
         setProperty("CPUTemperatureValid",thermalValid);
         if(thermalValid) {
             setProperty("CPUTemperatureC",static_cast<unsigned long long>(thermalData[0]),32);
-            if(manual && thermalData[0]>=90) { automatic(); setProperty("ThermalFallback",true); }
+            thermalGuard(thermalData[0]);
         }
         return true;
     }
@@ -148,7 +161,7 @@ class OmenFanBridge : public IOService {
         auto b = setFans(0,0);
         setProperty("LastRestoreStatus",static_cast<unsigned long long>(static_cast<uint32_t>(b==kIOReturnSuccess?a:b)),32);
         if (a == kIOReturnSuccess && b == kIOReturnSuccess) {
-            manual = false; owner = nullptr; target[0] = target[1] = 0;
+            manual = false; boosting = false; setProperty("ThermalBoost",false); owner = nullptr; target[0] = target[1] = 0;
             setProperty("ManualActive", false); setProperty("AutomaticRestoreFailed",false); return kIOReturnSuccess;
         }
         // Stop keepalive even on restore failure; firmware timeout remains enabled.
@@ -226,7 +239,7 @@ public:
                 manual=true; owner=client; lease=now()+20; refreshAt=now()+30; zeroSamples=0;
                 uint32_t stage=0x10; status=query(0x10,in,4,out,4);
                 if(status==kIOReturnSuccess){ stage=0x27;status=clearMaximum(); }
-                if(status==kIOReturnSuccess){ stage=0x2e;status=setFans(targets[0],targets[1]); }
+                if(status==kIOReturnSuccess){ stage=0x2e;status=boosting?setFans(maximum[0],maximum[1]):setFans(targets[0],targets[1]); }
                 setProperty("LastApplyStage",static_cast<unsigned long long>(stage),32);
                 setProperty("LastApplyStatus",static_cast<unsigned long long>(static_cast<uint32_t>(status)),32);
                 if(status!=kIOReturnSuccess)automatic();
@@ -269,7 +282,7 @@ bool OmenFanBridge::start(IOService *provider) {
     }
     if(object)object->release(); if(!found || !IOService::start(provider))return false;
     lock=IOLockAlloc(); if(!lock)return false;
-    setProperty("BridgeVersion","0.5.0"); setProperty("ManualActive",false);
+    setProperty("BridgeVersion","0.5.0"); setProperty("ManualActive",false); setProperty("ThermalBoost",false);
     setProperty("OmenKeySequence",0ULL,64);
     setProperty("FanWritesSupported",false); setProperty("BoardVerified",false);
     setProperty("MinimumManualPercent",0ULL,32);

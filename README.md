@@ -44,7 +44,7 @@ RPM readback is in 100 RPM steps. The usable range comes from each machine's fir
 ### Safety fallbacks
 
 - The driver holds a 20-second lease that the app renews every 3 seconds. Disconnect, lease expiry, sleep, shutdown, or repeated stalled-fan telemetry returns the fans to firmware Auto.
-- At a validated CPU temperature of 90 °C the driver requests Auto, and the app boosts manual cooling under serious or critical thermal pressure.
+- In manual mode, a validated CPU temperature of 85 °C or more makes the driver force maximum fans (`ThermalBoost`), returning to your setting below 75 °C. The app also boosts to full speed at 90 °C or under serious/critical thermal pressure.
 - If the firmware fan table cannot be validated, the driver stays in **read-only mode**: RPM is shown, and no fan writes are accepted.
 
 These are fallbacks, not a guarantee against every firmware or driver fault.

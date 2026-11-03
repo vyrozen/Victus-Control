@@ -7,6 +7,7 @@ Unofficial community fork of [Omen-Control](https://github.com/DEATHLESSEVIL/Ome
 - Added a read-only mode: if the fan table does not validate but RPM can be read, RPM is shown and all fan writes are refused (`TelemetryReadOnly`).
 - New registry diagnostics: `DiscoveryTableOK`, `DiscoveryTableTransport`, `RawFanTable`, `RawFanTelemetry`, `TelemetryTransport`. `PhysicalBoard` now reports the detected subsystem ID.
 - Installer and package name now cover both boards (`-8C78-8BC2-Experimental.pkg`).
+- **Thermal safety fix.** The driver used to request firmware Auto at a CPU temperature of 90 °C, which cancelled the app's full-speed cooling boost and made the app drop manual control. It now forces maximum fans from 85 °C, stays in manual, and returns to the requested targets below 75 °C.
 - Documentation rewritten in English for this fork, with a new [Victus 16 notes](VICTUS-16.md) page.
 - Hardware status: Victus 16 RPM readback and manual control confirmed by the fork author using a manual kext install. The combined PKG and power helper are untested on this board. The bridge is now 0.5.0; bundle identifiers (`local.omen.*`) are unchanged, so existing helper approvals and login items keep working.
 

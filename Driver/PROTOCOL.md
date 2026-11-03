@@ -38,7 +38,7 @@ The driver tries discovery up to ten times, three seconds apart. After the board
 
 A local-console user client exposes only apply, automatic, and heartbeat selectors. It holds a 20-second lease; the service refreshes it every three seconds. The driver refreshes manual-mode firmware keepalive every 30 seconds. Disconnect, sleep/shutdown, failed/repeated stalled manual telemetry, or lease expiry requests Auto. A fan targeted to zero/Auto is exempt from the manual stalled-fan check. The firmware's own keepalive timeout remains enabled.
 
-The CPU firmware sample is marked valid only for a successful read in 1–125°C. At 90°C the bridge requests Auto. The app additionally boosts fan requests under serious/critical thermal pressure. Missing GPU temperature is never replaced with a CPU reading for curve control.
+The CPU firmware sample is marked valid only for a successful read in 1–125°C. While under manual control, a validated CPU sample of 85°C or more makes the bridge request maximum fans and stay in manual (`ThermalBoost = Yes`); it returns to the requested targets below 75°C. Auto is requested only if the maximum request itself fails. (Versions up to the first 0.5.0 build requested Auto at 90°C, which cancelled the app's own full-speed boost.) The app additionally boosts fan requests under serious/critical thermal pressure. Missing GPU temperature is never replaced with a CPU reading for curve control.
 
 No HP CPU/GPU power-limit, clock, raw EC offset, or graphics-driver writes are made.
 
